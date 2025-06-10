@@ -1,25 +1,25 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { VitePWA } from 'vite-plugin-pwa';
+импорт { DefineConfig } от 'быстро';
+импорт реагировать от '@vitejs/plagin-react';
+импорт { Вдоль } от 'Резюме-плугин-веса';
 
-export default defineConfig({
-  base: '/text-editor-pwa/',
-  plugins: [
-    react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+экспорт по умолчанию DefineConfig({
+  база: '/text-editor-pwa/',
+  плагины: [
+    реагировать(),
+    Вдоль({
+      RegisterType: 'Autoupdate',
+      Рабочая коробка: {
+        Globpatterns: ['**/*. {JS, CSS, HTML, ICO, PNG, SVG}']
       },
-      manifest: {
-        name: 'Текстовый редактор',
+      манифест: {
+        имя: 'Текстовый редактор',
         short_name: 'Редактор',
-        description: 'Полнофункциональный текстовый редактор с поддержкой вкладок, таблиц и форматирования',
+        описание: 'Полнофункциональный текстовый редактор с поддержкой вкладок, таблиц и форматирования',
         theme_color: '#3b82f6',
-        background_color: '#ffffff',
-        display: 'standalone',
-        orientation: 'portrait-primary',
-        scope: '/text-editor-pwa/',
+        background_color: "#ffffff",
+        отображать: 'автономный',
+        ориентация: «Портрет-принцип»,
+        объем: '/text-editor-pwa/',
         start_url: '/text-editor-pwa/',
         lang: 'ru',
         icons: [
