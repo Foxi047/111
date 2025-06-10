@@ -13,6 +13,7 @@ function App() {
   const editorRef = useRef<HTMLDivElement>(null);
   const selectionRef = useRef<Range | null>(null);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isUpdatingContentRef = useRef<boolean>(false);
 
   // Состояния для диалоговых окон
   const [alertDialog, setAlertDialog] = useState<{
@@ -88,7 +89,7 @@ function App() {
   }, []);
 
   const restoreSelection = useCallback(() => {
-    if (selectionRef.current && editorRef.current) {
+    if (selectionRef.current && editorRef.current && !isUpdatingContentRef.current) {
       const selection = window.getSelection();
       if (selection) {
         selection.removeAllRanges();
@@ -198,11 +199,30 @@ function App() {
   useEffect(() => {
     const currentNote = notes.find(note => note.id === currentNoteId);
     if (currentNote && editorRef.current) {
-      editorRef.current.innerHTML = currentNote.content;
+      // Устанавливаем флаг, что мы обновляем содержимое
+      isUpdatingContentRef.current = true;
+      
+      // Сохраняем текущую позицию курсора перед обновлением
+      saveSelection();
+      
+      // Обновляем содержимое только если оно действительно изменилось
+      if (editorRef.current.innerHTML !== currentNote.content) {
+        editorRef.current.innerHTML = currentNote.content;
+        
+        // Восстанавливаем позицию курсора после небольшой задержки
+        setTimeout(() => {
+          restoreSelection();
+          isUpdatingContentRef.current = false;
+        }, 0);
+      } else {
+        isUpdatingContentRef.current = false;
+      }
     }
-  }, [currentNoteId, notes]);
+  }, [currentNoteId, notes, saveSelection, restoreSelection]);
 
   const onSwitchNote = (noteId: string) => {
+    // Сохраняем позицию курсора перед переключением
+    saveSelection();
     setCurrentNoteId(noteId);
   };
 
@@ -232,6 +252,9 @@ function App() {
   const currentNote = notes.find(note => note.id === currentNoteId);
 
   const updateNoteContent = useCallback((content: string) => {
+    // Не обновляем содержимое, если мы сейчас программно обновляем редактор
+    if (isUpdatingContentRef.current) return;
+    
     setNotes(prevNotes => 
       prevNotes.map(note => 
         note.id === currentNoteId 
@@ -540,7 +563,7 @@ function App() {
 
   // Обработка изменений в редакторе
   const handleEditorChange = () => {
-    if (editorRef.current) {
+    if (editorRef.current && !isUpdatingContentRef.current) {
       saveSelection();
       
       // Debounced update
@@ -548,8 +571,10 @@ function App() {
         clearTimeout(updateTimeoutRef.current);
       }
       updateTimeoutRef.current = setTimeout(() => {
-        const content = editorRef.current?.innerHTML || '';
-        updateNoteContent(content);
+        if (!isUpdatingContentRef.current) {
+          const content = editorRef.current?.innerHTML || '';
+          updateNoteContent(content);
+        }
       }, 300);
     }
   };
@@ -635,6 +660,8 @@ function App() {
                 onKeyDown={handleKeyDown}
                 onMouseUp={saveSelection}
                 onKeyUp={saveSelection}
+                onFocus={saveSelection}
+                onBlur={saveSelection}
                 className="w-full h-full outline-none text-gray-800 leading-relaxed"
                 style={{ 
                   minHeight: 'calc(100vh - 300px)',
